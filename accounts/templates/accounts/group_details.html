@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ group.name }} - Group Details</title>
+</head>
+<body>
+<h1>Group Details for {{ group.name }}</h1>
+
+<p><strong>Mentor:</strong> {{ group.mentor.user.username }}</p>
+
+<h2>Members</h2>
+<ul>
+    {% for member in group.members.all %}
+        <li>{{ member.username }}</li>
+    {% endfor %}
+</ul>
+
+<h2>Projects</h2>
+<ul>
+    {% for project in projects %}
+        <li><strong>{{ project.name }}</strong>: {{ project.description }}</li>
+    {% empty %}
+        <li>No projects found for this group.</li>
+    {% endfor %}
+</ul>
+
+<h2>Tasks</h2>
+<ul>
+    {% for task in tasks %}
+        <li><strong>{{ task.name }}</strong>: Due on {{ task.due_date }} - Status: {{ task.get_status_display }}</li>
+    {% empty %}
+        <li>No tasks found for this group.</li>
+    {% endfor %}
+</ul>
+
+<!-- Link to Group Chat -->
+<h2><a href="{% url 'group_chat' group.id %}">Join Group Chat</a></h2>
+
+{% comment %} <a href="{% url 'teacher_dashboard' %}">Back to Dashboard</a> {% endcomment %}
+<a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>

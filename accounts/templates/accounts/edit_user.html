@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit User Account</title>
+</head>
+<body>
+<h1>Edit User Account: {{ user.username }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <label for="username">Username:</label><br/>
+    <input type="text" name="username" value="{{ user.username }}" required><br/>
+
+    <label for="email">Email:</label><br/>
+    <input type="email" name="email" value="{{ user.email }}" required><br/>
+
+    <label for="password">Password:</label><br/>
+    <input type="password" name="password"><br/> <!-- Optional field -->
+
+    <label for="unique_id">Unique ID:</label><br/>
+    
+    {% if user.role == "student" %}
+        <!-- Assuming unique_id is stored as major -->
+        <input type="text" name="unique_id" value="{{ user.studentprofile.major }}" required><br/>
+        
+    {% elif user.role == "teacher" %}
+        <!-- Assuming unique_id is stored as department -->
+        <input type="text" name="unique_id" value="{{ user.teacherprofile.department }}" required><br/>
+        
+    {% endif %}
+
+    <button type="submit">Update Account</button>
+</form>
+
+<a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Dashboard</title>
+</head>
+<body>
+<h1>Welcome, {{ user.username }}</h1>
+
+<h2>Your Groups</h2>
+{% for group in groups %}
+    <div>
+        <h3><a href="{% url 'group_details' group.id %}">{{ group.name }}</a></h3>
+        <p><strong>Members:</strong></p>
+        <ul>
+            {% for member in group.members.all %}
+                <li>{{ member.username }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% empty %}
+    <p>You are not assigned to any groups.</p>
+{% endfor %}
+<a href="{% url 'profile_management' %}">profile_management</a>
+<a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>

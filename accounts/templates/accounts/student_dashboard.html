@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+</head>
+<body>
+<h1>Welcome, {{ user.username }}</h1>
+
+<h2>Your Groups</h2>
+{% for group in groups %}
+    <div>
+        <h3>{{ group.name }}</h3>
+        <p><strong>Mentor:</strong> {{ group.mentor.user.username }}</p>
+        <p><strong>Members:</strong></p>
+        <ul>
+            {% for member in group.members.all %}
+                <li>{{ member.username }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Correctly placed Join Chat link -->
+        <a href="{% url 'group_chat' group.id %}">Join Chat</a>
+
+        <!-- Display Project Information -->
+        <h4>Project Information</h4>
+        {% for project in projects %}
+            <p><strong>Project Name:</strong> {{ project.name }}</p>
+            <p><strong>Description:</strong> {{ project.description }}</p>
+
+            <!-- Option to Edit Project -->
+            <form method="post" action="{% url 'edit_project' project.id %}">
+                {% csrf_token %}
+                <button type="submit">Edit Project</button>
+            </form>
+        {% empty %}
+            <p>No projects found for this group.</p>
+        {% endfor %}
+
+        <!-- Add New Project Info Section -->
+        <form method="post">
+            {% csrf_token %}
+            <label for="project_name">Project Name:</label>
+            <input type="text" name="project_name" required><br>
+
+            <label for="project_description">Description:</label><br>
+            <textarea name="project_description" rows="4" required></textarea><br>
+
+            <button type="submit">Add Project Info</button>
+        </form>
+
+    </div>
+{% empty %}
+    <p>You are not part of any groups.</p>
+{% endfor %}
+
+<!-- Link to Manage Tasks -->
+<h2><a href="{% url 'manage_tasks' %}">Manage Your Tasks</a></h2>
+<a href="{% url 'profile_management' %}">profile_management</a>
+
+<a href="{% url 'logout' %}">Logout</a>
+</body>
+</html>

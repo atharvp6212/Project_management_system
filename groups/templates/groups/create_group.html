@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Group</title>
+    <script>
+        // JavaScript function to update the hidden input field for selected members
+        function updateSelectedMembers(checkbox) {
+            let selectedMembersInput = document.getElementById('selected_members_input');
+            let selectedMembers = selectedMembersInput.value ? selectedMembersInput.value.split(',') : [];
+
+            // Add or remove the member based on checkbox state
+            if (checkbox.checked) {
+                if (!selectedMembers.includes(checkbox.value)) {
+                    selectedMembers.push(checkbox.value);
+                }
+            } else {
+                selectedMembers = selectedMembers.filter(id => id !== checkbox.value);
+            }
+
+            // Update hidden input field
+            selectedMembersInput.value = selectedMembers.join(',');
+        }
+
+        // Function to check previously selected members on page load
+        window.onload = function () {
+            let selectedMembers = document.getElementById('selected_members_input').value.split(',');
+            let checkboxes = document.querySelectorAll('input[name="members"]');
+
+            checkboxes.forEach(function (checkbox) {
+                if (selectedMembers.includes(checkbox.value)) {
+                    checkbox.checked = true;
+                }
+            });
+        };
+    </script>
+</head>
+<body>
+<h1>Create New Group</h1>
+
+<!-- Group Creation and Search in the same form -->
+<form method="get">
+    {% csrf_token %}
+
+    <label for="name">Group Name:</label>
+    <input type="text" name="name" value="{{ request.GET.name }}" required><br>
+
+    <label for="mentor">Select Mentor:</label><br/>
+    {{ form.mentor }}<br/>
+
+    <h2>Select Members:</h2>
+
+    <!-- Search Field -->
+    <input type="text" name="search" value="{{ search_query }}" placeholder="Search by name or major">
+    <button type="submit">Search</button><br/>
+
+    <!-- Hidden field to store selected members across searches -->
+    <input type="hidden" id="selected_members_input" name="selected_members" value="{{ selected_members|join:',' }}">
+
+    <!-- Display Checkbox List of Students -->
+    {% for student in students %}
+        <input type="checkbox" name="members" value="{{ student.id }}" onchange="updateSelectedMembers(this)">
+        {{ student.username }} (Major: {{ student.studentprofile.major }})<br/>
+    {% endfor %}
+
+    <button type="submit" name="create_group" formmethod="post">Create Group</button>
+</form>
+
+<a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+</body>
+</html>

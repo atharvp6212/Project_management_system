@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ group.name }} - Group Chat</title>
+</head>
+<body>
+<h1>Group Chat for {{ group.name }}</h1>
+
+<div id="chat-messages">
+    {% for message in messages %}
+        <p><strong>{{ message.user.username }}:</strong> {{ message.message }} <em>({{ message.timestamp }})</em></p>
+    {% empty %}
+        <p>No messages yet.</p>
+    {% endfor %}
+</div>
+
+<h3>Send a Message</h3>
+<form method="post">
+    {% csrf_token %}
+    <textarea name="message" rows="4" required placeholder="Type your message here..."></textarea><br>
+    <button type="submit">Send</button>
+</form>
+
+<a href="{% url 'student_dashboard' %}">Back to Dashboard</a>
+</body>
+</html>
