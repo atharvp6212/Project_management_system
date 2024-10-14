@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Project</title>
+</head>
+<body>
+<h1>Edit Project: {{ form.instance.name }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}  <!-- Automatically render all fields -->
+    <button type="submit">Save Changes</button>
+</form>
+
+<a href="{% url 'student_dashboard' %}">Back to Dashboard</a>
+</body>
+</html>

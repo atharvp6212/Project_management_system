@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Tasks</title>
+</head>
+<body>
+<h1>Your Tasks</h1>
+
+<!-- Section for Tasks Assigned to the Student -->
+<h2>Your Assigned Tasks</h2>
+<ul>
+    {% for task in user_tasks %}
+        <li>
+            <strong>{{ task.name }}</strong> - Due: {{ task.due_date }} 
+            <p>Description: {{ task.description }}</p>
+            <p>Status: {{ task.get_status_display }}</p> <!-- Display status -->
+
+            <!-- Form to Change Status -->
+            <form method="post" action="{% url 'change_task_status' task.id %}">
+                {% csrf_token %}
+                <select name="status">
+                    <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+                <button type="submit">Update Status</button>
+            </form>
+        </li>
+    {% empty %}
+        <li>No tasks assigned.</li>
+    {% endfor %}
+</ul>
+
+<!-- Section for Tasks Assigned to Other Students -->
+<h2>Other Group Tasks</h2>
+<ul>
+    {% for task in other_tasks %}
+        <li>
+            <strong>{{ task.name }}</strong> - Due: {{ task.due_date }} 
+            <p>Description: {{ task.description }}</p>
+            <p>Status: {{ task.get_status_display }}</p> <!-- Display status -->
+            <p>Assigned To:
+                {% for member in task.assigned_to.all %}
+                    {{ member.username }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        </li>
+    {% empty %}
+        <li>No other tasks available.</li>
+    {% endfor %}
+</ul>
+
+<!-- Form to Add New Task -->
+<h3>Add New Task</h3>
+<form method="post" action="{% url 'manage_tasks' %}">
+    {% csrf_token %}
+    
+    <label for="task_name">Task Name:</label>
+    <input type="text" name="task_name" required><br>
+
+    <label for="task_description">Description:</label><br>
+    <textarea name="task_description" rows="4"></textarea><br>
+
+    <label for="assigned_to">Assign To:</label><br/>
+    <!-- Assuming you want to assign members of the same group -->
+    <select name="assigned_to" multiple required>
+        {% for group in groups %}
+            <optgroup label="{{ group.name }}">
+                {% for member in group.members.all %}
+                    <option value="{{ member.id }}">{{ member.username }}</option>
+                {% endfor %}
+            </optgroup>
+        {% endfor %}
+    </select><br/>
+
+    <label for="due_date">Due Date:</label><br/>
+    <input type="date" name="due_date"><br/>
+
+    <button type="submit">Create Task</button>
+</form>
+
+<a href="{% url 'student_dashboard' %}">Back to Dashboard</a>
+</body>
+</html>
