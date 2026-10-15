@@ -4,6 +4,9 @@ A Django project-management application for groups, projects, task assignment,
 deadlines and notifications. The scheduling module models task dependencies as a
 directed acyclic graph and computes earliest start times and the critical path.
 
+It now also includes PERT estimates, delay-impact analysis, resource-constrained
+list scheduling and a deterministic scalability benchmark.
+
 ## Algorithmic component
 
 The scheduler uses Kahn's topological-sort algorithm followed by forward and
@@ -22,8 +25,9 @@ python manage.py test
 python manage.py runserver
 ```
 
-## Planned evaluation
+## Reproducible evaluation
 
-Future experiments will compare FIFO, earliest-deadline-first and critical-path-
-aware scheduling using project completion time, missed deadlines and workload
-balance as metrics.
+Run `python benchmarks/scheduling_benchmark.py --sizes 100 500 1000`. The CSV
+captures runtime, peak memory, graph size and project completion time. See
+`ARCHITECTURE.md` for the research design and `LIMITATIONS.md` before making
+claims from the results.

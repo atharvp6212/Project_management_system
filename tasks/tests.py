@@ -1,6 +1,9 @@
 from django.test import SimpleTestCase
 
-from .scheduling import DependencyCycleError, critical_path_schedule
+from .scheduling import (
+    DependencyCycleError, critical_path_schedule, delayed_project_finish,
+    pert_estimate, resource_constrained_schedule,
+)
 
 
 class CriticalPathTests(SimpleTestCase):
@@ -22,3 +25,15 @@ class CriticalPathTests(SimpleTestCase):
     def test_rejects_non_positive_duration(self):
         with self.assertRaisesMessage(ValueError, 'positive'):
             critical_path_schedule({1: 0}, [])
+
+    def test_resource_scheduler_never_double_books_a_worker(self):
+        rows = resource_constrained_schedule(
+            {1: 3, 2: 2, 3: 1}, [], {1: {'A'}, 2: {'A'}, 3: {'B'}}
+        )
+        worker_a = sorted((row.start, row.finish) for row in rows if row.resource == 'A')
+        self.assertGreaterEqual(worker_a[1][0], worker_a[0][1])
+
+    def test_delay_impact_and_pert(self):
+        self.assertEqual(delayed_project_finish({1: 2, 2: 3}, [(1, 2)], 1, 4), 9)
+        mean, deviation = pert_estimate(2, 5, 8)
+        self.assertEqual((mean, deviation), (5, 1))

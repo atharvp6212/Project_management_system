@@ -2,6 +2,7 @@
 
 from collections import defaultdict, deque
 from dataclasses import dataclass
+from math import sqrt
 
 
 class DependencyCycleError(ValueError):
@@ -14,6 +15,21 @@ class ScheduledTask:
     earliest_start: int
     earliest_finish: int
     is_critical: bool
+
+
+@dataclass(frozen=True)
+class ResourceTask:
+    task_id: int
+    start: int
+    finish: int
+    resource: str
+
+
+def pert_estimate(optimistic: float, most_likely: float, pessimistic: float) -> tuple[float, float]:
+    """Return PERT expected duration and standard deviation."""
+    if not 0 < optimistic <= most_likely <= pessimistic:
+        raise ValueError('PERT estimates must satisfy 0 < O <= M <= P.')
+    return ((optimistic + 4 * most_likely + pessimistic) / 6, (pessimistic - optimistic) / 6)
 
 
 def critical_path_schedule(durations: dict[int, int], edges: list[tuple[int, int]]) -> list[ScheduledTask]:
@@ -74,3 +90,58 @@ def critical_path_schedule(durations: dict[int, int], edges: list[tuple[int, int
         )
         for task_id in order
     ]
+
+
+def resource_constrained_schedule(
+    durations: dict[int, int],
+    edges: list[tuple[int, int]],
+    eligible_resources: dict[int, set[str]],
+) -> list[ResourceTask]:
+    """Greedy list scheduling with precedence and resource constraints.
+
+    Ready tasks are prioritized by their critical-path finish time. The
+    implementation is deterministic and intended as a reproducible heuristic
+    baseline; it does not claim an optimal RCPSP solution.
+    """
+    baseline = critical_path_schedule(durations, edges)
+    priority = {row.task_id: row.earliest_finish for row in baseline}
+    predecessors = defaultdict(set)
+    successors = defaultdict(set)
+    for predecessor, successor in edges:
+        predecessors[successor].add(predecessor)
+        successors[predecessor].add(successor)
+    if set(eligible_resources) != set(durations) or any(not value for value in eligible_resources.values()):
+        raise ValueError('Every task must have at least one eligible resource.')
+
+    unscheduled = set(durations)
+    finish_times: dict[int, int] = {}
+    resource_free = {resource: 0 for values in eligible_resources.values() for resource in values}
+    result = []
+    while unscheduled:
+        ready = [task for task in unscheduled if predecessors[task] <= finish_times.keys()]
+        if not ready:
+            raise DependencyCycleError('Task dependencies contain a cycle.')
+        task = max(ready, key=lambda value: (priority[value], -value))
+        dependency_finish = max((finish_times[p] for p in predecessors[task]), default=0)
+        resource = min(
+            eligible_resources[task],
+            key=lambda value: (max(dependency_finish, resource_free[value]), value),
+        )
+        start = max(dependency_finish, resource_free[resource])
+        finish = start + durations[task]
+        result.append(ResourceTask(task, start, finish, resource))
+        resource_free[resource] = finish
+        finish_times[task] = finish
+        unscheduled.remove(task)
+    return sorted(result, key=lambda row: (row.start, row.task_id))
+
+
+def delayed_project_finish(
+    durations: dict[int, int], edges: list[tuple[int, int]], task_id: int, delay: int
+) -> int:
+    """Return projected completion time after delaying one task."""
+    if task_id not in durations or delay < 0:
+        raise ValueError('Use a known task and a non-negative delay.')
+    changed = dict(durations)
+    changed[task_id] += delay
+    return max((row.earliest_finish for row in critical_path_schedule(changed, edges)), default=0)
